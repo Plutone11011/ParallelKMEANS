@@ -10,6 +10,7 @@ Write your code in this editor and press "Run" button to compile and execute it.
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
+
 #include "kmeans.h"
 #include "utils.h"
 #include "gfx.h"
@@ -37,7 +38,6 @@ void draw_point(double x, double y, u_int8_t cluster){
             colors[cluster].b );            
     int px = (int)(round(x));
     int py = (int)(round(y));
-    printf("Point to draw: %d, %d\n", px, py);
     gfx_point(px,py);
 }
 
@@ -81,21 +81,31 @@ int main()
 {
     //double data[MAX_POINTS][MAX_FEATURES] = {0.0} ;
     srand(time(NULL));
-
+    double tstart, tstop;
     
     //read_csv("data/housing.csv", data);   
-
+    
     // the actual points used are 2d or 3d for lloyd (for now?)
     double points[MAX_POINTS][DIM]; 
     double centroids[K][DIM] = {0.0} ;
+
+    tstart = omp_get_wtime();
+
+    #pragma omp parallel for default(none) shared(points, XSIZE, YSIZE) schedule(dynamic) num_threads(THREADS)
     for (int i = 0; i < MAX_POINTS; i++ ) {
+        //printf("Thread number %d for iteration %d\n", omp_get_thread_num(), i);
         points[i][0] = (double)(rand() % XSIZE);
         points[i][1] = (double)(rand() % YSIZE);
     }
+    
     u_int8_t clusters[MAX_POINTS] = {0};
     kmeans_lloyd(points, centroids, clusters);
 
     normalize_points(points, centroids);
+
+    tstop = omp_get_wtime();
+
+    printf("Time elapsed %lf", tstop - tstart);
 
     gfx_open(XSIZE, YSIZE, "KMeans");
 

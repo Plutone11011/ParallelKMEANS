@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "utils.h"
+#include <omp.h>
 
 #define K 5
 
