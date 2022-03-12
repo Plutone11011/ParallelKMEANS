@@ -4,7 +4,7 @@ double dist2(double point1[DIM], double point2[DIM]){
     
     double res = 0;
     for (int i = 0; i < DIM; i++){
-        printf("Distance between points (%lf, %lf)\n", point1[i], point2[2]);
+//        printf("Distance between points (%lf, %lf)\n", point1[i], point2[2]);
         res += (point1[i] - point2[i])*(point1[i] - point2[i]);
     }
     
@@ -38,19 +38,23 @@ double *compute_centroid(double points[MAX_POINTS][DIM], u_int8_t clusters[MAX_P
                 nPointsInCluster++;
             }
         }
-        centroid[j] = sum / nPointsInCluster;
+        if (sum != 0 && nPointsInCluster != 0){
+            // if there are no points in currentCluster
+            // maintain same centroid 
+            centroid[j] = sum / nPointsInCluster;
+        }
         nPointsInCluster = 0;
         sum = 0;
     }
 }
 
-void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM]){
+void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM], u_int8_t clusters[MAX_POINTS]){
     /*
     * Computes k means on a number of clusters defined by K and with
     * points points of dimension DIM
     */
     srand(time(NULL));
-    // pick centroids at random from points points
+    // pick centroids at random from points 
     int rand_point_i;
     for (int k = 0; k < K; k++){
         rand_point_i = rand() % MAX_POINTS;
@@ -60,12 +64,13 @@ void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM]){
         } 
     }
 
-    u_int8_t clusters[MAX_POINTS] = {0};
+    
     int max_iter = 1000; // usually condition to stop is also that difference for centroid is too small   
-
     for (int iter = 0; iter < max_iter; iter++){
         for (int i = 0; i < MAX_POINTS; i++){
+            
             clusters[i] = label_point(points[i], centroids);
+            //printf("Cluster %d for point %d\n", clusters[i], i);
         }
         for (int k = 0; k < K; k++){
             compute_centroid(points, clusters, k, centroids[k]);

@@ -20,13 +20,11 @@ void read_csv(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
             if (j < MAX_FEATURES - 1){
                 line_buf++; // skip comma
             }
-            printf("Number %lf\n", number);
             
             data[i][j] = number; 
-            //printf("Data point: %lf", data[i][j]);
         }
         // need to reinitialize line_buf at the end of inner loop
-        // to avoid memory problems
+        // to avoid memory leak
         line_buf = NULL; 
         line_buf_size = 0;
         
