@@ -8,17 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_POINTS 100000
-#define MAX_FEATURES 1
+#define MAX_POINTS 200000
 #define DIM 2 // actual dimension of data used in algo
-#define THREADS_P 4
-#define THREADS_K 2
+#define THREADS 1
 #define TOL 1e-4
-#define K 7
+#define K 16
+#define LLOYD "lloyd"
+#define MCQUEEN "mcqueen"
 
 
-
-void read_data(char *filename, double data[MAX_POINTS][MAX_FEATURES]);
+void read_data(char *filename, double data[MAX_POINTS][DIM]);
 
 
 #endif

@@ -1,7 +1,7 @@
 #include "utils.h"
 
 
-void read_data(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
+void read_data(char *filename, double data[MAX_POINTS][DIM]){
 
     FILE *fp=fopen(filename,"r");
     char *line_buf = NULL;
@@ -15,10 +15,10 @@ void read_data(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
 
         line_size = getline(&line_buf, &line_buf_size, fp);
         
-        for (int j = 0; j < MAX_FEATURES; j++){
+        for (int j = 0; j < DIM; j++){
             number = strtod(line_buf, &line_buf);
             
-            if (j < MAX_FEATURES - 1){
+            if (j < DIM - 1){
                 line_buf++; // skip comma
             }
             

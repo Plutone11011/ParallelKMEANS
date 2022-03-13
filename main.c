@@ -82,32 +82,20 @@ void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) 
 
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    double data[MAX_POINTS][MAX_FEATURES] = {0.0} ;
-    srand(time(NULL));
+    double points[MAX_POINTS][DIM] = {0.0} ;
     double tstart, tstop;
-    
-    read_data("data/kmeans.txt", data);   
-        
-    // the actual points used are 2d or 3d for lloyd (for now?)
-    double points[MAX_POINTS][DIM]; 
     double centroids[K][DIM] = {0.0} ;
+
+
+    read_data("data/kmeans.txt", points);   
 
     tstart = omp_get_wtime();
 
-    #pragma omp parallel for default(none) shared(points, XSIZE, YSIZE, data) schedule(dynamic) num_threads(THREADS_P)
-    for (int i = 0; i < MAX_POINTS; i++ ) {
-        //printf("Thread number %d for iteration %d\n", omp_get_thread_num(), i);
-        //points[i][0] = (double)(rand() % XSIZE);
-        //points[i][1] = (double)(rand() % YSIZE);
-
-        points[i][0] = data[i][0];
-        points[i][1] = data[i][1];
-    }
-    
     u_int8_t clusters[MAX_POINTS] = {0};
-    kmeans_lloyd(points, centroids, clusters);
+    
+    kmeans_lloyd(points, centroids, clusters); 
 
     normalize_points(points, centroids);
 

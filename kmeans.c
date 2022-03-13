@@ -1,7 +1,8 @@
 #include "kmeans.h"
 
 double dist2(double point1[DIM], double point2[DIM]){
-    // useless to parallelize, number of dimensions very small
+    // trivial parallelization
+    // number of dimensions very small
     // for k-means.
     double res = 0;
     for (int i = 0; i < DIM; i++){
@@ -10,6 +11,23 @@ double dist2(double point1[DIM], double point2[DIM]){
     
     return res;
     
+}
+
+double frob_dist(double points1[K][DIM], double points2[K][DIM]){
+    double dist = 0;
+    #pragma omp parallel num_threads(THREADS) reduction(+:dist) 
+    {
+        int my_start = K*(omp_get_thread_num() / omp_get_num_threads());
+        int my_end = K*((omp_get_thread_num()+1) / omp_get_num_threads());
+        long my_dist = 0; 
+        for (int i = my_start; i < my_end; i++){
+            my_dist += dist2(points1[i], points2[i]); 
+        }
+        dist += my_dist;
+    }
+    return sqrt(dist);
+
+
 }
 
 u_int8_t label_point(double point[DIM], double centroids[K][DIM]){
@@ -27,8 +45,9 @@ u_int8_t label_point(double point[DIM], double centroids[K][DIM]){
 }
 
 double* compute_centroid(double points[MAX_POINTS][DIM], u_int8_t clusters[MAX_POINTS], int currentCluster, double centroid[DIM]){
-    // compute mean of all points belonging to cluster 
-    // according to current clustering
+    /* compute mean of all points belonging to cluster 
+    * according to current clustering
+    */
     double sum = 0 ;
     int nPointsInCluster = 0;
     for (int j = 0; j < DIM; j++){
@@ -55,17 +74,21 @@ double* compute_centroid(double points[MAX_POINTS][DIM], u_int8_t clusters[MAX_P
     }
 }
 
-void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM], u_int8_t clusters[MAX_POINTS]){
-    /*
-    * Computes k means on a number of clusters defined by K and with
-    * points points of dimension DIM
-    */
-    srand(time(NULL));
-    // pick centroids randomly selected from points 
-    int rand_point_i;
+void store_prev_centroids(double prev_centroids[K][DIM], double centroids[K][DIM]){
+    // keep a copy of centroids previous value
+    #pragma omp parallel for schedule(dynamic) num_threads(THREADS)
+    for (int k = 0; k < K; k++){
+        for (int j = 0; j < DIM; j++){
+            prev_centroids[k][j] = centroids[k][j];
+        }
+    }
+}
+
+void init_random_centroids(double points[MAX_POINTS][DIM],  double centroids[K][DIM]){
     // parallelize a possibly very small set of tasks depending on number of clusters
     // experiment? also number of dimensions, generally small
-    #pragma omp parallel for private(rand_point_i) schedule(static) num_threads(THREADS_K)
+    int rand_point_i;
+    #pragma omp parallel for private(rand_point_i) schedule(static) num_threads(THREADS)
     for (int k = 0; k < K; k++){
         rand_point_i = rand() % MAX_POINTS;
         for (int j = 0; j < DIM; j++){
@@ -73,41 +96,79 @@ void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM], u_i
             centroids[k][j] = points[rand_point_i][j];
         } 
     }
+}
 
+void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM], u_int8_t clusters[MAX_POINTS]){
+    /*
+    * Computes k means on a number of clusters defined by K and with
+    * points points of dimension DIM
+    */
+    srand(time(NULL));
+    init_random_centroids(points, centroids);
+    // pick centroids randomly selected from points 
     
-    const int max_iter = 10000; // usually condition to stop is also that difference for centroid is too small   
+    const int MAX_ITER = 1000; 
     int iter = 0;
     double prev_centroids[K][DIM];
     double frob_distance;
     do {
-        // keep a copy of centroids previous value
-        for (int k = 0; k < K; k++){
-            for (int j = 0; j < DIM; j++){
-                prev_centroids[k][j] = centroids[k][j];
-            }
-        }
+        store_prev_centroids(prev_centroids, centroids);
         // for each point, label it, that is, for each centroid
         // find the one closest in euclidean distance from the current point
-        #pragma omp parallel for schedule(dynamic) num_threads(THREADS_P)
+        #pragma omp parallel for schedule(dynamic) num_threads(THREADS)
         for (int i = 0; i < MAX_POINTS; i++){
             //printf("Distance of point %d, thread %d \n", i, omp_get_thread_num());
             clusters[i] = label_point(points[i], centroids);
             //printf("Cluster %d for point %d\n", clusters[i], i);
         }
-        // need for all points to be labeled before 
-        #pragma omp parallel for schedule(dynamic) num_threads(THREADS_K)
+        #pragma omp parallel for schedule(dynamic) num_threads(THREADS)
         for (int k = 0; k < K; k++){
             //printf("Cluster %d for thread %d\n", k, omp_get_thread_num());
             compute_centroid(points, clusters, k, centroids[k]);
         }
-        frob_distance = 0; // frobenius norm of the distance used for tolerance
-        for (int k = 0; k < K; k++){
-            //printf("Previous (%lf, %lf)\nCurrent (%lf, %lf)\n",prev_centroids[k][0], prev_centroids[k][1], centroids[k][0], centroids[k][1]);
-            frob_distance += dist2(centroids[k], prev_centroids[k]);
-        }
-        frob_distance = sqrt(frob_distance);
+        // frobenius norm of the distance used for tolerance
+        frob_distance = frob_dist(centroids, prev_centroids);
         //printf("Error %lf\n", frob_distance);
         iter++;
-    }  while (iter < max_iter && frob_distance > TOL);
+    }  while (iter < MAX_ITER && frob_distance > TOL);
     //printf("Iterations done: %d\n", iter);
 }
+/*
+void kmeans_mcqueen(double points[MAX_POINTS][DIM], double centroids[K][DIM], u_int8_t clusters[MAX_POINTS]){
+    srand(time(NULL));
+    init_random_centroids(points, centroids);
+
+    const int MAX_ITER = 1000; 
+    int iter = 0;
+    double prev_centroids[K][DIM];
+    double frob_distance;
+    do {
+        store_prev_centroids(prev_centroids, centroids);
+
+        // since there is data dependency in this loop, 
+        // we make private both clusters and centroids, specifically
+        // both firstprivate, so that they are initialized correctly,
+        // and lastprivate, so that their last value is kept outside of the loop
+        int previousCluster ; // keep a reference to previous cluster to update relevant centroid
+        //#pragma omp parallel for private(previousCluster) schedule(dynamic) num_threads(THREADS)
+        for (int i = 0; i < MAX_POINTS; i++){
+            //printf("Distance of point %d, thread %d \n", i, omp_get_thread_num());
+            previousCluster = clusters[i];
+            //printf("Cluster %d, thread %d", clusters[i], omp_get_thread_num());
+            clusters[i] = label_point(points[i], centroids);
+            printf("Cluster %d for point %d\n", clusters[i], i);
+            //printf("Cluster %d for thread %d\n", i, omp_get_thread_num());
+            //compute_centroid(points, clusters, clusters[i], centroids[clusters[i]]);
+            //compute_centroid(points, clusters, clusters[previousCluster], centroids[previousCluster]);
+            for (int k = 0; k < K; k++){
+                compute_centroid(points, clusters, clusters[k], centroids[k]);
+            }
+            //printf("Cluster %d for point %d\n", clusters[i], i);
+        }
+        // frobenius norm of the distance used for tolerance
+        frob_distance = frob_dist(centroids, prev_centroids);
+        printf("Frobenius: %lf\n", frob_distance);
+        //printf("Error %lf\n", frob_distance);
+        iter++;
+    }  while (iter < MAX_ITER && frob_distance > TOL);
+}*/
