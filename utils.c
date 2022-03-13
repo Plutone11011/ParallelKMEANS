@@ -1,7 +1,7 @@
 #include "utils.h"
 
 
-void read_csv(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
+void read_data(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
 
     FILE *fp=fopen(filename,"r");
     char *line_buf = NULL;
@@ -17,6 +17,7 @@ void read_csv(char *filename, double data[MAX_POINTS][MAX_FEATURES]){
         
         for (int j = 0; j < MAX_FEATURES; j++){
             number = strtod(line_buf, &line_buf);
+            
             if (j < MAX_FEATURES - 1){
                 line_buf++; // skip comma
             }

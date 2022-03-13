@@ -31,11 +31,16 @@ const pixel_t colors[] = {
     {0,255,255}};
 const int NCOLORS = sizeof(colors)/sizeof(colors[0]);
 
-void draw_point(double x, double y, u_int8_t cluster){
+void draw_point(double x, double y, u_int8_t cluster, u_int8_t isCluster){
         
-    gfx_color(colors[cluster].r,
+    if (!isCluster){
+        gfx_color(colors[cluster].r,
             colors[cluster].g,
-            colors[cluster].b );            
+            colors[cluster].b );
+    }
+    else {
+        gfx_color(255, 255, 255);
+    } 
     int px = (int)(round(x));
     int py = (int)(round(y));
     gfx_point(px,py);
@@ -79,23 +84,26 @@ void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) 
 
 int main()
 {
-    //double data[MAX_POINTS][MAX_FEATURES] = {0.0} ;
+    double data[MAX_POINTS][MAX_FEATURES] = {0.0} ;
     srand(time(NULL));
     double tstart, tstop;
     
-    //read_csv("data/housing.csv", data);   
-    
+    read_data("data/kmeans.txt", data);   
+        
     // the actual points used are 2d or 3d for lloyd (for now?)
     double points[MAX_POINTS][DIM]; 
     double centroids[K][DIM] = {0.0} ;
 
     tstart = omp_get_wtime();
 
-    #pragma omp parallel for default(none) shared(points, XSIZE, YSIZE) schedule(dynamic) num_threads(THREADS)
+    #pragma omp parallel for default(none) shared(points, XSIZE, YSIZE, data) schedule(dynamic) num_threads(THREADS_P)
     for (int i = 0; i < MAX_POINTS; i++ ) {
         //printf("Thread number %d for iteration %d\n", omp_get_thread_num(), i);
-        points[i][0] = (double)(rand() % XSIZE);
-        points[i][1] = (double)(rand() % YSIZE);
+        //points[i][0] = (double)(rand() % XSIZE);
+        //points[i][1] = (double)(rand() % YSIZE);
+
+        points[i][0] = data[i][0];
+        points[i][1] = data[i][1];
     }
     
     u_int8_t clusters[MAX_POINTS] = {0};
@@ -105,14 +113,24 @@ int main()
 
     tstop = omp_get_wtime();
 
-    printf("Time elapsed %lf", tstop - tstart);
+    printf("Time elapsed %lf\n", tstop - tstart);
 
     gfx_open(XSIZE, YSIZE, "KMeans");
 
     for (int i = 0; i < MAX_POINTS; i++){
-        draw_point(points[i][0], points[i][1], clusters[i]);
+        draw_point(points[i][0], points[i][1], clusters[i], 0);
         if (i < K){
-            draw_point(centroids[i][0], centroids[i][1], i); // centroid index is cluster number
+            // draw centroid as bigger point
+            printf("Centroid %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]); 
+            draw_point(centroids[i][0], centroids[i][1], i, 1); // centroid index is cluster number
+            draw_point(centroids[i][0]+1, centroids[i][1], i, 1);
+            draw_point(centroids[i][0], centroids[i][1]+1, i, 1);
+            draw_point(centroids[i][0]-1, centroids[i][1], i, 1);
+            draw_point(centroids[i][0], centroids[i][1]-1, i, 1);
+            draw_point(centroids[i][0]-1, centroids[i][1]-1, i, 1);
+            draw_point(centroids[i][0]+1, centroids[i][1]+1, i, 1);
+            draw_point(centroids[i][0]+1, centroids[i][1]-1, i, 1);
+            draw_point(centroids[i][0]-1, centroids[i][1]+1, i, 1);
         }
     }
 
