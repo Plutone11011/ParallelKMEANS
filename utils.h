@@ -10,7 +10,7 @@
 
 #define MAX_POINTS 200000
 #define DIM 2 // actual dimension of data used in algo
-#define THREADS 1
+#define THREADS 4
 #define TOL 1e-4
 #define K 16
 #define LLOYD "lloyd"

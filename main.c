@@ -54,6 +54,8 @@ void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) 
     double maxY = -DBL_MAX;
     double minY = DBL_MAX;
 
+    #pragma omp parallel for schedule(static) reduction(min:minX,minY) reduction(max:maxX,maxY)
+    
     for (int i = 0; i < MAX_POINTS; i++){
         if (points[i][0] > maxX){
             maxX = points[i][0];
@@ -68,8 +70,9 @@ void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) 
             minY = points[i][1];
         }
     }
+    
 
-
+    #pragma omp parallel for
     for (int i = 0; i < MAX_POINTS; i++){
         points[i][0] = (points[i][0] - minX)*(XSIZE / (maxX - minX)); // linearly scale X to XSIZE
         points[i][1] = (points[i][1] - minY)*(YSIZE / (maxY - minY)); // linearly scale Y to YSIZE
@@ -109,7 +112,7 @@ int main(int argc, char* argv[])
         draw_point(points[i][0], points[i][1], clusters[i], 0);
         if (i < K){
             // draw centroid as bigger point
-            printf("Centroid %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]); 
+            //printf("Centroid %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]); 
             draw_point(centroids[i][0], centroids[i][1], i, 1); // centroid index is cluster number
             draw_point(centroids[i][0]+1, centroids[i][1], i, 1);
             draw_point(centroids[i][0], centroids[i][1]+1, i, 1);
