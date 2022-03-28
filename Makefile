@@ -1,9 +1,9 @@
 
-CC=gcc-11
+CC=gcc
 OPENMP=-fopenmp
-GFX=-lX11 -lm
+MATH=-lm
 
 
-all: gfx.c utils.c kmeans.c main.c
-	$(CC) $(OPENMP) $^ -o kmeans $(GFX) 
+all: utils.c kmeans.c main.c
+	$(CC) $(OPENMP) $^ -o kmeans ${MATH} 
 

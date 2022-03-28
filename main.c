@@ -13,11 +13,10 @@ Write your code in this editor and press "Run" button to compile and execute it.
 
 #include "kmeans.h"
 #include "utils.h"
-#include "gfx.h"
 
 
 //const int XSIZE = 800, YSIZE = 600; 
-const int XSIZE = 1024, YSIZE = 768;
+/**const int XSIZE = 1024, YSIZE = 768;
 
 typedef struct {
     int r, g, b;
@@ -83,7 +82,7 @@ void normalize_points(double **points, double **centroids, int K, int MAX_POINTS
     }
     
 
-}
+}*/
 
 int main(int argc, char* argv[])
 {
@@ -123,12 +122,11 @@ int main(int argc, char* argv[])
 
     tstop = omp_get_wtime();
 
-    
-    normalize_points(points, centroids, K, MAX_POINTS);
-
     double elapsed_time = tstop - tstart;
 
-    /*gfx_open(XSIZE, YSIZE, "KMeans");
+    /*
+    normalize_points(points, centroids, K, MAX_POINTS);
+    gfx_open(XSIZE, YSIZE, "KMeans");
 
     for (int i = 0; i < MAX_POINTS; i++){
         draw_point(points[i][0], points[i][1], clusters[i], 0);
