@@ -1,7 +1,7 @@
 #include "utils.h"
 
 
-void read_data(char *filename, double data[MAX_POINTS][DIM]){
+void read_data(char *filename, double **data, int MAX_POINTS){
 
     FILE *fp=fopen(filename,"r");
     char *line_buf = NULL;

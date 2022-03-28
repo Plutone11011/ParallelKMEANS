@@ -47,7 +47,7 @@ void draw_point(double x, double y, u_int8_t cluster, u_int8_t isCluster){
 }
 
 
-void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) {
+void normalize_points(double **points, double **centroids, int K, int MAX_POINTS) {
 
     double maxX = -DBL_MAX;
     double minX = DBL_MAX;
@@ -87,26 +87,48 @@ void normalize_points(double points[MAX_POINTS][DIM], double centroids[K][DIM]) 
 
 int main(int argc, char* argv[])
 {
-    double points[MAX_POINTS][DIM] = {0.0} ;
+    double **points;
     double tstart, tstop;
-    double centroids[K][DIM] = {0.0} ;
+    double **centroids;
+    u_int8_t *clusters;
 
+    int MAX_POINTS = 20000;
+    int K = 5;
 
-    read_data("data/kmeans.txt", points);   
+    if (argc == 3){
+        MAX_POINTS = atoi(argv[1]);
+        K = atoi(argv[2]);
+    }
+    
+      /* allocate the array */
+    points = malloc(MAX_POINTS * sizeof *points);
+    for (int i=0; i<MAX_POINTS; i++)
+    {
+        points[i] = malloc(DIM * sizeof *points[i]);
+    }
 
+    read_data("data/kmeans.txt", points, MAX_POINTS);   
+
+    centroids = malloc(K * sizeof *centroids);
+    for (int i=0; i<K; i++)
+    {
+        centroids[i] = malloc(DIM * sizeof *centroids[i]);
+    }
+
+    clusters = malloc(MAX_POINTS * sizeof *clusters);
+    
     tstart = omp_get_wtime();
 
-    u_int8_t clusters[MAX_POINTS] = {0};
-    
-    kmeans_lloyd(points, centroids, clusters); 
-
-    normalize_points(points, centroids);
+    kmeans_lloyd(points, centroids, clusters, K, MAX_POINTS); 
 
     tstop = omp_get_wtime();
 
-    printf("Time elapsed %lf\n", tstop - tstart);
+    
+    normalize_points(points, centroids, K, MAX_POINTS);
 
-    gfx_open(XSIZE, YSIZE, "KMeans");
+    double elapsed_time = tstop - tstart;
+
+    /*gfx_open(XSIZE, YSIZE, "KMeans");
 
     for (int i = 0; i < MAX_POINTS; i++){
         draw_point(points[i][0], points[i][1], clusters[i], 0);
@@ -126,6 +148,16 @@ int main(int argc, char* argv[])
     }
 
 
-    gfx_wait();
+    gfx_wait();*/
+    for (int i = 0; i < MAX_POINTS; i++){
+        free(points[i]);
+    }
+    free(points);
+    for (int i = 0; i < K; i++){
+        free(centroids[i]);
+    }
+    free(centroids);
+    free(clusters);
+    printf("%lf", elapsed_time);
     return 0;
 }
