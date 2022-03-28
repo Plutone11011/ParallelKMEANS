@@ -113,8 +113,8 @@ int main(int argc, char* argv[])
         if (i < K){
             // draw centroid as bigger point
             //printf("Centroid %d: (%lf, %lf)\n", i, centroids[i][0], centroids[i][1]); 
-            draw_point(centroids[i][0], centroids[i][1], i, 1); // centroid index is cluster number
             draw_point(centroids[i][0]+1, centroids[i][1], i, 1);
+            draw_point(centroids[i][0], centroids[i][1], i, 1); // centroid index is cluster number
             draw_point(centroids[i][0], centroids[i][1]+1, i, 1);
             draw_point(centroids[i][0]-1, centroids[i][1], i, 1);
             draw_point(centroids[i][0], centroids[i][1]-1, i, 1);

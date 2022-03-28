@@ -51,8 +51,6 @@ double* compute_centroid(double points[MAX_POINTS][DIM], u_int8_t clusters[MAX_P
     double sum = 0 ;
     int nPointsInCluster = 0;
     for (int j = 0; j < DIM; j++){
-        // parallelizable, reduction
-//        #pragma omp parallel for schedule(dynamic) 
         for (int i = 0; i < MAX_POINTS; i++){
             // if current point's cluster is 
             // the one we want to recompute
@@ -133,42 +131,3 @@ void kmeans_lloyd(double points[MAX_POINTS][DIM],  double centroids[K][DIM], u_i
     }  while (iter < MAX_ITER && frob_distance > TOL);
     //printf("Iterations done: %d\n", iter);
 }
-/*
-void kmeans_mcqueen(double points[MAX_POINTS][DIM], double centroids[K][DIM], u_int8_t clusters[MAX_POINTS]){
-    srand(time(NULL));
-    init_random_centroids(points, centroids);
-
-    const int MAX_ITER = 1000; 
-    int iter = 0;
-    double prev_centroids[K][DIM];
-    double frob_distance;
-    do {
-        store_prev_centroids(prev_centroids, centroids);
-
-        // since there is data dependency in this loop, 
-        // we make private both clusters and centroids, specifically
-        // both firstprivate, so that they are initialized correctly,
-        // and lastprivate, so that their last value is kept outside of the loop
-        int previousCluster ; // keep a reference to previous cluster to update relevant centroid
-        //#pragma omp parallel for private(previousCluster) schedule(dynamic) num_threads(THREADS)
-        for (int i = 0; i < MAX_POINTS; i++){
-            //printf("Distance of point %d, thread %d \n", i, omp_get_thread_num());
-            previousCluster = clusters[i];
-            //printf("Cluster %d, thread %d", clusters[i], omp_get_thread_num());
-            clusters[i] = label_point(points[i], centroids);
-            printf("Cluster %d for point %d\n", clusters[i], i);
-            //printf("Cluster %d for thread %d\n", i, omp_get_thread_num());
-            //compute_centroid(points, clusters, clusters[i], centroids[clusters[i]]);
-            //compute_centroid(points, clusters, clusters[previousCluster], centroids[previousCluster]);
-            for (int k = 0; k < K; k++){
-                compute_centroid(points, clusters, clusters[k], centroids[k]);
-            }
-            //printf("Cluster %d for point %d\n", clusters[i], i);
-        }
-        // frobenius norm of the distance used for tolerance
-        frob_distance = frob_dist(centroids, prev_centroids);
-        printf("Frobenius: %lf\n", frob_distance);
-        //printf("Error %lf\n", frob_distance);
-        iter++;
-    }  while (iter < MAX_ITER && frob_distance > TOL);
-}*/
