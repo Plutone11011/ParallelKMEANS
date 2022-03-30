@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
             int cores = atoi(argv[4]);
             MAX_POINTS = (int)round(sqrt(cores)*MAX_POINTS);
             K = (int)round(sqrt(cores)*K);
-            
+            printf("Samples: %d, Clusters: %d\n", MAX_POINTS, K);
         }
     }
 
@@ -109,8 +109,7 @@ int main(int argc, char* argv[])
         printf("Wrong number of arguments.");
         exit(1);
     }
-    printf("%d, %d\n", MAX_POINTS, K);    
-      /* allocate the array */
+    /* allocate the array */
     points = malloc(MAX_POINTS * sizeof *points);
     for (int i=0; i<MAX_POINTS; i++)
     {
