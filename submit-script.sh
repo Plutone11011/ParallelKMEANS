@@ -10,4 +10,4 @@
 
 make -f ./Makefile
 ./strong-scaling.sh
-
+./weak-scaling.sh
