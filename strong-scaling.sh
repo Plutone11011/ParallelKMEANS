@@ -1,7 +1,7 @@
 
 
-MAX_POINTS=100000
-K=10
+MAX_POINTS=200000
+K=16
 CORES=`cat /proc/cpuinfo | grep processor | wc -l`
 echo "Strong"
 echo "${CORES}"

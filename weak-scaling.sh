@@ -1,5 +1,5 @@
-MAX_POINTS=50000
-K=8
+MAX_POINTS=100000
+K=10
 CORES=`cat /proc/cpuinfo | grep processor | wc -l`
 echo "Weak"
 echo "${CORES}"

@@ -83,8 +83,7 @@ void store_prev_centroids(double **prev_centroids, double **centroids,  int K){
 }
 
 void init_random_centroids(double **points,  double **centroids,  int K,  int MAX_POINTS){
-    // parallelize a possibly very small set of tasks depending on number of clusters
-    // experiment? also number of dimensions, generally small
+    
     int rand_point_i;
     #pragma omp parallel for private(rand_point_i) schedule(static)
     for (int k = 0; k < K; k++){
