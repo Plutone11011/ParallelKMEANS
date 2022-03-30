@@ -10,7 +10,7 @@ Write your code in this editor and press "Run" button to compile and execute it.
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
-
+#include <string.h>
 #include "kmeans.h"
 #include "utils.h"
 
@@ -93,12 +93,23 @@ int main(int argc, char* argv[])
 
     int MAX_POINTS = 20000;
     int K = 5;
-
-    if (argc == 3){
+    if (argc >= 3 && argc <= 5){
         MAX_POINTS = atoi(argv[1]);
         K = atoi(argv[2]);
+        if (strcmp(argv[3], "weak") == 0){
+            int cores = atoi(argv[4]);
+            MAX_POINTS = (int)round(sqrt(cores)*MAX_POINTS);
+            K = (int)round(sqrt(cores)*K);
+            
+        }
     }
-    
+
+
+    else{
+        printf("Wrong number of arguments.");
+        exit(1);
+    }
+    printf("%d, %d\n", MAX_POINTS, K);    
       /* allocate the array */
     points = malloc(MAX_POINTS * sizeof *points);
     for (int i=0; i<MAX_POINTS; i++)

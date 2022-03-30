@@ -9,5 +9,5 @@
 #SBATCH --gres=gpu:1
 
 make -f ./Makefile
-./strong-scaling.sh
+#./strong-scaling.sh
 ./weak-scaling.sh
